@@ -455,6 +455,10 @@ export default function App() {
     return () => window.clearTimeout(timeout);
   }, [importMessage, saveMessage, storageError]);
 
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [view]);
+
   const query = deferredSearch.trim().toLowerCase();
   const filteredEntries = [...entries]
     .sort((left, right) => {
