@@ -26,6 +26,7 @@ type BurgerEntry = {
   toppings: string[];
   photoDataUrl?: string;
   createdAt: string;
+  updatedAt?: string;
 };
 
 type BurgerFormState = {
@@ -40,6 +41,11 @@ type BurgerFormState = {
   notes: string;
   toppings: string;
   photoDataUrl?: string;
+};
+
+type InstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
 const STORAGE_KEY = "burger-collector.entries.v1";
@@ -105,6 +111,20 @@ const emptyForm: BurgerFormState = {
   photoDataUrl: undefined
 };
 
+function normalizeEntry(entry: BurgerEntry): BurgerEntry {
+  return {
+    ...entry,
+    price: entry.price ?? "",
+    toppings: Array.isArray(entry.toppings) ? entry.toppings : [],
+    notes: entry.notes ?? "",
+    temperature: entry.temperature ?? "Medium",
+    juiciness: entry.juiciness ?? "Balanced",
+    pattyStyle: entry.pattyStyle ?? "Smashed",
+    sampledOn: entry.sampledOn ?? TODAY,
+    createdAt: entry.createdAt ?? new Date().toISOString()
+  };
+}
+
 function loadEntries() {
   const saved = window.localStorage.getItem(STORAGE_KEY);
   if (!saved) {
@@ -113,7 +133,7 @@ function loadEntries() {
 
   try {
     const parsed = JSON.parse(saved) as BurgerEntry[];
-    return parsed.length > 0 ? parsed : starterEntries;
+    return parsed.length > 0 ? parsed.map(normalizeEntry) : starterEntries;
   } catch {
     return starterEntries;
   }
@@ -144,9 +164,11 @@ function summarizeTopTopping(entries: BurgerEntry[]) {
   return ranked[0]?.[0] ?? "No favorite yet";
 }
 
-function createEntry(form: BurgerFormState): BurgerEntry {
+function createEntry(form: BurgerFormState, existingId?: string): BurgerEntry {
+  const timestamp = new Date().toISOString();
+
   return {
-    id: crypto.randomUUID(),
+    id: existingId ?? crypto.randomUUID(),
     name: form.name.trim(),
     restaurant: form.restaurant.trim(),
     price: form.price.trim(),
@@ -161,7 +183,24 @@ function createEntry(form: BurgerFormState): BurgerEntry {
       .map((item) => item.trim())
       .filter(Boolean),
     photoDataUrl: form.photoDataUrl,
-    createdAt: new Date().toISOString()
+    createdAt: timestamp,
+    updatedAt: timestamp
+  };
+}
+
+function formFromEntry(entry: BurgerEntry): BurgerFormState {
+  return {
+    name: entry.name,
+    restaurant: entry.restaurant,
+    price: entry.price,
+    rating: String(entry.rating),
+    sampledOn: entry.sampledOn,
+    temperature: entry.temperature,
+    juiciness: entry.juiciness,
+    pattyStyle: entry.pattyStyle,
+    notes: entry.notes,
+    toppings: entry.toppings.join(", "),
+    photoDataUrl: entry.photoDataUrl
   };
 }
 
@@ -174,6 +213,30 @@ async function readFileAsDataUrl(file: File) {
   });
 }
 
+function downloadEntries(entries: BurgerEntry[]) {
+  const fileContents = JSON.stringify(
+    {
+      exportedAt: new Date().toISOString(),
+      version: 1,
+      entries
+    },
+    null,
+    2
+  );
+
+  const blob = new Blob([fileContents], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  const stamp = new Date().toISOString().slice(0, 10);
+
+  link.href = url;
+  link.download = `burger-collector-export-${stamp}.json`;
+  document.body.append(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
 export default function App() {
   const [entries, setEntries] = useState<BurgerEntry[]>(() => loadEntries());
   const [view, setView] = useState<ViewMode>("journal");
@@ -182,6 +245,9 @@ export default function App() {
   const [sortMode, setSortMode] = useState<SortMode>("recent");
   const [isSavingPhoto, setIsSavingPhoto] = useState(false);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [importMessage, setImportMessage] = useState<string | null>(null);
+  const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
 
   const deferredSearch = useDeferredValue(search);
 
@@ -190,13 +256,27 @@ export default function App() {
   }, [entries]);
 
   useEffect(() => {
-    if (!saveMessage) {
+    const handler = (event: Event) => {
+      event.preventDefault();
+      setInstallPrompt(event as InstallPromptEvent);
+    };
+
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
+  }, []);
+
+  useEffect(() => {
+    if (!saveMessage && !importMessage) {
       return;
     }
 
-    const timeout = window.setTimeout(() => setSaveMessage(null), 2500);
+    const timeout = window.setTimeout(() => {
+      setSaveMessage(null);
+      setImportMessage(null);
+    }, 2800);
+
     return () => window.clearTimeout(timeout);
-  }, [saveMessage]);
+  }, [importMessage, saveMessage]);
 
   const query = deferredSearch.trim().toLowerCase();
   const filteredEntries = [...entries]
@@ -253,12 +333,21 @@ export default function App() {
 
   const topTopping = summarizeTopTopping(entries);
   const topEntry = [...entries].sort((left, right) => right.rating - left.rating)[0];
+  const topRestaurant = [...entries]
+    .sort((left, right) => right.rating - left.rating)
+    .map((entry) => entry.restaurant)[0];
 
   const updateField = <Key extends keyof BurgerFormState>(
     key: Key,
     value: BurgerFormState[Key]
   ) => {
     setForm((current) => ({ ...current, [key]: value }));
+  };
+
+  const startNewEntry = () => {
+    setEditingId(null);
+    setForm({ ...emptyForm, sampledOn: TODAY });
+    setView("new");
   };
 
   const handlePhotoChange = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -279,12 +368,82 @@ export default function App() {
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const entry = createEntry(form);
 
-    setEntries((current) => [entry, ...current]);
+    if (editingId) {
+      setEntries((current) =>
+        current.map((entry) =>
+          entry.id === editingId
+            ? {
+                ...createEntry(form, editingId),
+                createdAt: entry.createdAt,
+                updatedAt: new Date().toISOString()
+              }
+            : entry
+        )
+      );
+      setSaveMessage(`Updated ${form.name.trim()}`);
+    } else {
+      const entry = createEntry(form);
+      setEntries((current) => [entry, ...current]);
+      setSaveMessage(`Saved ${entry.name}`);
+    }
+
+    setEditingId(null);
     setForm({ ...emptyForm, sampledOn: TODAY });
     setView("journal");
-    setSaveMessage(`Saved ${entry.name}`);
+  };
+
+  const handleEditEntry = (entry: BurgerEntry) => {
+    setEditingId(entry.id);
+    setForm(formFromEntry(entry));
+    setView("new");
+  };
+
+  const handleDeleteEntry = (id: string) => {
+    const entry = entries.find((item) => item.id === id);
+    if (!entry) {
+      return;
+    }
+
+    const confirmed = window.confirm(`Delete "${entry.name}" from your journal?`);
+    if (!confirmed) {
+      return;
+    }
+
+    setEntries((current) => current.filter((item) => item.id !== id));
+    setSaveMessage(`Deleted ${entry.name}`);
+  };
+
+  const handleImport = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    const text = await file.text();
+
+    try {
+      const parsed = JSON.parse(text) as { entries?: BurgerEntry[] } | BurgerEntry[];
+      const incoming = Array.isArray(parsed) ? parsed : parsed.entries ?? [];
+      const normalized = incoming.map(normalizeEntry);
+
+      setEntries(normalized);
+      setImportMessage(`Imported ${normalized.length} entries`);
+    } catch {
+      setImportMessage("Import failed. Please choose a Burger Collector export.");
+    } finally {
+      event.target.value = "";
+    }
+  };
+
+  const handleInstall = async () => {
+    if (!installPrompt) {
+      return;
+    }
+
+    await installPrompt.prompt();
+    await installPrompt.userChoice;
+    setInstallPrompt(null);
   };
 
   const resetStarterData = () => {
@@ -306,11 +465,7 @@ export default function App() {
           </div>
 
           <div className="hero-actions">
-            <button
-              className="primary-action"
-              type="button"
-              onClick={() => setView("new")}
-            >
+            <button className="primary-action" type="button" onClick={startNewEntry}>
               Log today&apos;s burger
             </button>
             <button
@@ -333,7 +488,24 @@ export default function App() {
             ))}
           </section>
 
+          {installPrompt ? (
+            <section className="panel-card install-card">
+              <div>
+                <p className="section-kicker">Installable</p>
+                <h2>Add it to your home screen</h2>
+                <p className="install-copy">
+                  Install the PWA now, then we can use the same codebase later for
+                  an iPhone packaging pass.
+                </p>
+              </div>
+              <button className="ghost-action" type="button" onClick={handleInstall}>
+                Install app
+              </button>
+            </section>
+          ) : null}
+
           {saveMessage ? <p className="toast-message">{saveMessage}</p> : null}
+          {importMessage ? <p className="toast-message">{importMessage}</p> : null}
 
           {view === "journal" ? (
             <>
@@ -369,6 +541,20 @@ export default function App() {
                     </select>
                   </label>
                 </div>
+
+                <div className="utility-row">
+                  <button
+                    className="ghost-action"
+                    type="button"
+                    onClick={() => downloadEntries(entries)}
+                  >
+                    Export JSON
+                  </button>
+                  <label className="inline-upload">
+                    <span>Import JSON</span>
+                    <input type="file" accept="application/json" onChange={handleImport} />
+                  </label>
+                </div>
               </section>
 
               <section className="journal-section">
@@ -379,51 +565,81 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="entry-list">
-                  {filteredEntries.map((burger) => (
-                    <article className="entry-card" key={burger.id}>
-                      {burger.photoDataUrl ? (
-                        <img
-                          className="entry-photo"
-                          src={burger.photoDataUrl}
-                          alt={`${burger.name} at ${burger.restaurant}`}
-                        />
-                      ) : null}
+                {filteredEntries.length === 0 ? (
+                  <article className="panel-card empty-card">
+                    <p className="section-kicker">Nothing matched</p>
+                    <h2>Your journal is ready for the next great burger</h2>
+                    <p className="install-copy">
+                      Try a different search, clear the filter, or log a new entry.
+                    </p>
+                    <button className="primary-action" type="button" onClick={startNewEntry}>
+                      Create first entry
+                    </button>
+                  </article>
+                ) : (
+                  <div className="entry-list">
+                    {filteredEntries.map((burger) => (
+                      <article className="entry-card" key={burger.id}>
+                        {burger.photoDataUrl ? (
+                          <img
+                            className="entry-photo"
+                            src={burger.photoDataUrl}
+                            alt={`${burger.name} at ${burger.restaurant}`}
+                          />
+                        ) : null}
 
-                      <div className="entry-topline">
-                        <div>
-                          <h3>{burger.name}</h3>
-                          <p className="restaurant">{burger.restaurant}</p>
+                        <div className="entry-topline">
+                          <div>
+                            <h3>{burger.name}</h3>
+                            <p className="restaurant">{burger.restaurant}</p>
+                          </div>
+                          <p className="entry-date">
+                            {formatEntryDate(burger.sampledOn)}
+                          </p>
                         </div>
-                        <p className="entry-date">
-                          {formatEntryDate(burger.sampledOn)}
+
+                        <div className="entry-meta">
+                          <span>{renderStars(burger.rating)}</span>
+                          <span>{burger.temperature}</span>
+                          <span>{burger.juiciness}</span>
+                          <span>{burger.pattyStyle}</span>
+                          {burger.price ? <span>{burger.price}</span> : null}
+                        </div>
+
+                        <p className="entry-notes">
+                          {burger.notes || "No tasting notes yet."}
                         </p>
-                      </div>
 
-                      <div className="entry-meta">
-                        <span>{renderStars(burger.rating)}</span>
-                        <span>{burger.temperature}</span>
-                        <span>{burger.juiciness}</span>
-                        <span>{burger.pattyStyle}</span>
-                        {burger.price ? <span>{burger.price}</span> : null}
-                      </div>
+                        {burger.toppings.length > 0 ? (
+                          <div className="tag-row" aria-label="Burger details">
+                            {burger.toppings.map((tag) => (
+                              <span className="tag" key={tag}>
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                        ) : null}
 
-                      <p className="entry-notes">
-                        {burger.notes || "No tasting notes yet."}
-                      </p>
-
-                      {burger.toppings.length > 0 ? (
-                        <div className="tag-row" aria-label="Burger details">
-                          {burger.toppings.map((tag) => (
-                            <span className="tag" key={tag}>
-                              {tag}
-                            </span>
-                          ))}
+                        <div className="entry-actions">
+                          <button
+                            className="ghost-action"
+                            type="button"
+                            onClick={() => handleEditEntry(burger)}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="ghost-action danger-action"
+                            type="button"
+                            onClick={() => handleDeleteEntry(burger.id)}
+                          >
+                            Delete
+                          </button>
                         </div>
-                      ) : null}
-                    </article>
-                  ))}
-                </div>
+                      </article>
+                    ))}
+                  </div>
+                )}
               </section>
             </>
           ) : null}
@@ -432,8 +648,14 @@ export default function App() {
             <section className="panel-card form-card">
               <div className="section-heading">
                 <div>
-                  <p className="section-kicker">New tasting entry</p>
-                  <h2>Capture the burger while it&apos;s still fresh</h2>
+                  <p className="section-kicker">
+                    {editingId ? "Edit tasting entry" : "New tasting entry"}
+                  </p>
+                  <h2>
+                    {editingId
+                      ? "Tune up the details"
+                      : "Capture the burger while it's still fresh"}
+                  </h2>
                 </div>
               </div>
 
@@ -586,12 +808,12 @@ export default function App() {
 
                 <div className="form-actions">
                   <button className="primary-action" type="submit">
-                    Save entry
+                    {editingId ? "Update entry" : "Save entry"}
                   </button>
                   <button
                     className="secondary-action"
                     type="button"
-                    onClick={() => setForm({ ...emptyForm, sampledOn: TODAY })}
+                    onClick={startNewEntry}
                   >
                     Clear form
                   </button>
@@ -618,6 +840,15 @@ export default function App() {
                 <p className="insight-copy">
                   Quick taste trends are the kind of thing that make this feel like
                   a real collector&apos;s log.
+                </p>
+              </article>
+
+              <article className="panel-card insight-card">
+                <p className="section-kicker">Top restaurant</p>
+                <h2>{topRestaurant ?? "Still up for grabs"}</h2>
+                <p className="insight-copy">
+                  As you keep logging, this becomes a personal shortlist for repeat
+                  visits.
                 </p>
               </article>
 
@@ -665,7 +896,7 @@ export default function App() {
           <button
             className={`tab ${view === "new" ? "active" : ""}`}
             type="button"
-            onClick={() => setView("new")}
+            onClick={startNewEntry}
           >
             New Entry
           </button>

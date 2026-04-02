@@ -15,6 +15,7 @@
   --card-border: rgba(112, 64, 26, 0.12);
   --accent: #a33f16;
   --accent-strong: #812e0d;
+  --danger: #a12f22;
   --text-primary: #24160f;
   --text-secondary: #6c574a;
   --shadow: 0 16px 40px rgba(80, 39, 17, 0.12);
@@ -108,7 +109,8 @@ h3 {
 .restaurant,
 .entry-date,
 .stat-label,
-.insight-copy {
+.insight-copy,
+.install-copy {
   color: var(--text-secondary);
 }
 
@@ -175,6 +177,10 @@ h3 {
   font-weight: 700;
 }
 
+.danger-action {
+  color: var(--danger);
+}
+
 .content {
   padding: 18px 0 104px;
 }
@@ -200,6 +206,12 @@ h3 {
 .stat-label {
   margin-top: 6px;
   font-size: 0.88rem;
+}
+
+.install-card {
+  margin-top: 18px;
+  display: grid;
+  gap: 14px;
 }
 
 .toast-message {
@@ -229,6 +241,13 @@ h3 {
   gap: 12px;
 }
 
+.utility-row {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
 .search-field,
 .select-field,
 .input-group,
@@ -240,7 +259,8 @@ h3 {
 .search-field span,
 .select-field span,
 .input-group span,
-.upload-card span {
+.upload-card span,
+.inline-upload span {
   color: var(--text-secondary);
   font-size: 0.92rem;
   font-weight: 600;
@@ -250,7 +270,8 @@ h3 {
 .select-field select,
 .input-group input,
 .input-group select,
-.input-group textarea {
+.input-group textarea,
+.inline-upload input {
   width: 100%;
   padding: 14px 15px;
   border: 1px solid rgba(112, 64, 26, 0.12);
@@ -269,9 +290,17 @@ h3 {
 .select-field select:focus,
 .input-group input:focus,
 .input-group select:focus,
-.input-group textarea:focus {
+.input-group textarea:focus,
+.inline-upload input:focus {
   border-color: rgba(163, 63, 22, 0.34);
   box-shadow: 0 0 0 4px rgba(163, 63, 22, 0.12);
+}
+
+.inline-upload {
+  display: grid;
+  gap: 8px;
+  flex: 1;
+  min-width: 180px;
 }
 
 .journal-section .section-heading {
@@ -333,13 +362,18 @@ h3 {
 }
 
 .tag-row,
-.field-grid {
+.field-grid,
+.entry-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
 }
 
 .tag-row {
+  margin-top: 16px;
+}
+
+.entry-actions {
   margin-top: 16px;
 }
 
@@ -376,7 +410,13 @@ h3 {
   width: 100%;
 }
 
-.insight-copy {
+.empty-card {
+  display: grid;
+  gap: 12px;
+}
+
+.insight-copy,
+.install-copy {
   margin-top: 8px;
 }
 
