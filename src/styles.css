@@ -744,22 +744,22 @@ h3 {
   grid-template-columns: repeat(4, 1fr);
   gap: 4px;
   border-top: 1px solid rgba(57, 86, 97, 0.1);
-  background: rgba(255, 252, 247, 0.92);
-  box-shadow: 0 -8px 24px rgba(66, 52, 31, 0.08);
+  background: rgba(35, 57, 70, 0.94);
+  box-shadow: 0 -8px 24px rgba(18, 28, 35, 0.22);
 }
 
 .tab {
   padding: 8px 6px 6px;
   border-radius: 16px;
   background: transparent;
-  color: var(--text-secondary);
+  color: rgba(236, 243, 246, 0.74);
   font-weight: 700;
   font-size: 0.76rem;
 }
 
 .tab.active {
-  background: rgba(47, 102, 120, 0.12);
-  color: var(--accent);
+  background: rgba(255, 255, 255, 0.12);
+  color: #ffffff;
 }
 
 .tab-label-wrap {
@@ -779,7 +779,7 @@ h3 {
 }
 
 .tab-icon.active {
-  background: rgba(47, 102, 120, 0.1);
+  background: rgba(255, 255, 255, 0.14);
 }
 
 .compact-mode .entry-card,
