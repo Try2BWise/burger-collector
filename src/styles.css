@@ -308,6 +308,13 @@ h3 {
   gap: 12px;
 }
 
+.controls-compact-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: end;
+}
+
 .segmented-control {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -320,11 +327,12 @@ h3 {
 
 .segment {
   border: 0;
-  padding: 10px 12px;
+  padding: 9px 11px;
   border-radius: 12px;
   background: transparent;
   color: var(--text-secondary);
   font-weight: 700;
+  font-size: 0.82rem;
 }
 
 .segment.active {
@@ -348,13 +356,18 @@ h3 {
   gap: 8px;
 }
 
+.controls-compact-row .search-field,
+.controls-compact-row .select-field {
+  gap: 6px;
+}
+
 .search-field span,
 .select-field span,
 .input-group span,
 .upload-card span,
 .inline-upload span {
   color: var(--text-secondary);
-  font-size: 0.92rem;
+  font-size: 0.82rem;
   font-weight: 600;
 }
 
@@ -365,7 +378,7 @@ h3 {
 .input-group textarea,
 .inline-upload input {
   width: 100%;
-  padding: 14px 15px;
+  padding: 12px 14px;
   border: 1px solid rgba(57, 86, 97, 0.12);
   border-radius: 14px;
   background: rgba(255, 255, 255, 0.72);
@@ -838,6 +851,7 @@ h3 {
 
   .stats-grid,
   .controls-row,
+  .controls-compact-row,
   .form-grid,
   .detail-grid,
   .blueprint-layout {

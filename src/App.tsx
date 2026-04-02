@@ -699,12 +699,9 @@ export default function App() {
                     <p className="section-kicker">Journal</p>
                     <h2>Your burgers</h2>
                   </div>
-                  <button className="ghost-action" type="button" onClick={startNewEntry}>
-                    New Entry
-                  </button>
                 </div>
 
-                <div className="controls-row">
+                <div className="controls-compact-row">
                   <label className="search-field">
                     <span>Search</span>
                     <input
