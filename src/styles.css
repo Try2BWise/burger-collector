@@ -77,8 +77,8 @@ img {
 }
 
 .app-title {
-  font-size: clamp(2rem, 6vw, 2.7rem);
-  line-height: 1;
+  font-size: clamp(1.85rem, 5.6vw, 2.4rem);
+  line-height: 1.02;
   letter-spacing: -0.05em;
 }
 
@@ -249,8 +249,8 @@ h3 {
 
 .stat-card,
 .panel-card {
-  padding: 18px;
-  border-radius: 26px;
+  padding: 16px;
+  border-radius: 22px;
 }
 
 .stat-value {
@@ -291,7 +291,7 @@ h3 {
 .journal-section,
 .form-card,
 .stats-stack {
-  margin-top: 18px;
+  margin-top: 14px;
 }
 
 .section-heading {
@@ -299,7 +299,7 @@ h3 {
   align-items: end;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 14px;
+  margin-bottom: 12px;
 }
 
 .controls-row {
@@ -406,12 +406,12 @@ h3 {
 .entry-list,
 .stats-stack {
   display: grid;
-  gap: 14px;
+  gap: 10px;
 }
 
 .entry-card {
-  padding: 18px;
-  border-radius: 26px;
+  padding: 14px;
+  border-radius: 20px;
   background: rgba(255, 252, 247, 0.94);
 }
 
@@ -445,19 +445,32 @@ h3 {
   display: flex;
   justify-content: space-between;
   gap: 12px;
+  align-items: start;
+}
+
+.entry-trailing {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
 }
 
 .restaurant,
 .entry-date {
   margin-top: 4px;
-  font-size: 0.92rem;
+  font-size: 0.88rem;
+}
+
+.entry-chevron {
+  color: var(--text-secondary);
+  font-size: 1.2rem;
+  line-height: 1;
 }
 
 .entry-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin-top: 14px;
+  margin-top: 12px;
   color: var(--accent-strong);
   font-weight: 700;
 }
@@ -471,8 +484,9 @@ h3 {
 }
 
 .entry-notes {
-  margin-top: 14px;
+  margin-top: 10px;
   color: var(--text-secondary);
+  font-size: 0.94rem;
 }
 
 .tag-row,
@@ -488,7 +502,7 @@ h3 {
 }
 
 .entry-actions {
-  margin-top: 16px;
+  margin-top: 12px;
 }
 
 .tag,
@@ -537,7 +551,7 @@ h3 {
 .detail-card,
 .settings-card {
   display: grid;
-  gap: 14px;
+  gap: 12px;
 }
 
 .settings-card,
@@ -571,11 +585,11 @@ h3 {
 .detail-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 .detail-stat {
-  padding: 14px;
+  padding: 12px;
   display: grid;
   gap: 6px;
 }
@@ -616,20 +630,21 @@ h3 {
   background:
     linear-gradient(180deg, rgba(247, 251, 252, 0.96), rgba(236, 244, 246, 0.92)),
     var(--card-bg);
+  border-radius: 22px;
 }
 
 .blueprint-layout {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 16px;
+  gap: 12px;
   align-items: start;
 }
 
 .blueprint-canvas {
   position: relative;
-  min-height: 320px;
-  padding: 20px;
-  border-radius: 24px;
+  min-height: 290px;
+  padding: 18px;
+  border-radius: 20px;
   border: 1px solid rgba(57, 86, 97, 0.14);
   background:
     linear-gradient(rgba(47, 102, 120, 0.08) 1px, transparent 1px),
@@ -704,14 +719,14 @@ h3 {
 .blueprint-notes {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
+  gap: 8px;
 }
 
 .blueprint-row {
   display: grid;
   gap: 4px;
-  padding: 12px 14px;
-  border-radius: 18px;
+  padding: 11px 12px;
+  border-radius: 16px;
   border: 1px solid rgba(57, 86, 97, 0.12);
   background: rgba(47, 102, 120, 0.04);
 }

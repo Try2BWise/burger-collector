@@ -374,6 +374,28 @@ export default function App() {
 
   const deferredSearch = useDeferredValue(search);
   const selectedEntry = entries.find((entry) => entry.id === selectedEntryId) ?? null;
+  const pageHeader = (() => {
+    if (view === "new") {
+      return {
+        eyebrow: editingId ? "Edit entry" : "New entry",
+        title: editingId ? "Update burger" : "Log burger"
+      };
+    }
+
+    if (view === "stats") {
+      return { eyebrow: "Overview", title: "Stats" };
+    }
+
+    if (view === "settings") {
+      return { eyebrow: "App", title: "Settings" };
+    }
+
+    if (view === "detail" && selectedEntry) {
+      return { eyebrow: selectedEntry.restaurant, title: selectedEntry.name };
+    }
+
+    return { eyebrow: "Burger log", title: "Burger Collector" };
+  })();
 
   useEffect(() => {
     let cancelled = false;
@@ -659,8 +681,8 @@ export default function App() {
       <div className="device-frame">
         <header className="app-chrome">
           <div>
-            <p className="eyebrow">Burger log</p>
-            <h1 className="app-title">Burger Collector</h1>
+            <p className="eyebrow">{pageHeader.eyebrow}</p>
+            <h1 className="app-title">{pageHeader.title}</h1>
           </div>
         </header>
 
@@ -769,9 +791,14 @@ export default function App() {
                               <h3>{burger.name}</h3>
                               <p className="restaurant">{burger.restaurant}</p>
                             </div>
-                            <p className="entry-date">
-                              {formatEntryDate(burger.sampledOn)}
-                            </p>
+                            <div className="entry-trailing">
+                              <p className="entry-date">
+                                {formatEntryDate(burger.sampledOn)}
+                              </p>
+                              <span className="entry-chevron" aria-hidden="true">
+                                ›
+                              </span>
+                            </div>
                           </div>
 
                           <div className="entry-meta">
