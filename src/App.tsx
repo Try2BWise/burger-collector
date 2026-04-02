@@ -634,10 +634,24 @@ export default function App() {
       className={`app-shell ${preferences.prefersCompactCards ? "compact-mode" : ""}`}
     >
       <div className="device-frame">
+        <header className="app-chrome">
+          <div>
+            <p className="eyebrow">Burger log</p>
+            <h1 className="app-title">Burger Collector</h1>
+          </div>
+          <button
+            className="chrome-button"
+            type="button"
+            onClick={() => setView("settings")}
+          >
+            Settings
+          </button>
+        </header>
+
         <header className="hero-card">
           <div className="hero-copy">
             <p className="eyebrow">Pocket tasting journal</p>
-            <h1>Burger Collector</h1>
+            <h2>Track the burgers worth remembering</h2>
             <p className="hero-text">
               Log the burgers you actually eat, keep tasting notes, and build a
               personal best-of list that works offline from your home screen.
@@ -734,18 +748,25 @@ export default function App() {
                     />
                   </label>
 
-                  <label className="select-field">
+                  <div className="select-field">
                     <span>Sort</span>
-                    <select
-                      value={sortMode}
-                      onChange={(event) =>
-                        setSortMode(event.target.value as SortMode)
-                      }
-                    >
-                      <option value="recent">Most recent</option>
-                      <option value="rating">Highest rated</option>
-                    </select>
-                  </label>
+                    <div className="segmented-control" role="tablist" aria-label="Sort entries">
+                      <button
+                        className={`segment ${sortMode === "recent" ? "active" : ""}`}
+                        type="button"
+                        onClick={() => setSortMode("recent")}
+                      >
+                        Recent
+                      </button>
+                      <button
+                        className={`segment ${sortMode === "rating" ? "active" : ""}`}
+                        type="button"
+                        onClick={() => setSortMode("rating")}
+                      >
+                        Top Rated
+                      </button>
+                    </div>
+                  </div>
                 </div>
 
                 <div className="utility-row">
