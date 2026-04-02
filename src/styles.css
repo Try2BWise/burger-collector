@@ -214,6 +214,17 @@ h3 {
   gap: 14px;
 }
 
+.welcome-card,
+.settings-stack {
+  margin-top: 18px;
+}
+
+.welcome-actions,
+.settings-actions {
+  display: grid;
+  gap: 10px;
+}
+
 .toast-message {
   margin: 14px 4px 0;
   color: var(--accent-strong);
@@ -318,6 +329,19 @@ h3 {
   border-radius: 26px;
 }
 
+.entry-card.selected {
+  border-color: rgba(163, 63, 22, 0.28);
+}
+
+.entry-open {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+}
+
 .entry-photo,
 .photo-preview {
   aspect-ratio: 4 / 3;
@@ -420,6 +444,76 @@ h3 {
   margin-top: 8px;
 }
 
+.detail-card,
+.settings-card {
+  display: grid;
+  gap: 14px;
+}
+
+.detail-photo {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 22px;
+}
+
+.detail-photo-placeholder,
+.detail-stat,
+.toggle-row {
+  background: rgba(255, 255, 255, 0.46);
+  border: 1px solid rgba(112, 64, 26, 0.12);
+  border-radius: 20px;
+}
+
+.detail-photo-placeholder {
+  display: grid;
+  place-items: center;
+  color: var(--text-secondary);
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.detail-stat {
+  padding: 14px;
+  display: grid;
+  gap: 6px;
+}
+
+.detail-stat span {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.detail-notes {
+  color: var(--text-secondary);
+}
+
+.detail-section {
+  display: grid;
+  gap: 10px;
+}
+
+.toggle-row {
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.toggle-row input {
+  width: 20px;
+  height: 20px;
+}
+
+.settings-select {
+  margin-top: 4px;
+}
+
 .tab-bar {
   position: fixed;
   left: 50%;
@@ -428,7 +522,7 @@ h3 {
   width: min(calc(100% - 32px), 460px);
   padding: 10px;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 8px;
   border-radius: 28px;
   background: rgba(255, 246, 235, 0.8);
@@ -445,6 +539,16 @@ h3 {
 .tab.active {
   background: rgba(163, 63, 22, 0.12);
   color: var(--accent);
+}
+
+.compact-mode .entry-card,
+.compact-mode .panel-card,
+.compact-mode .stat-card {
+  padding: 14px;
+}
+
+.compact-mode .entry-photo {
+  margin-bottom: 10px;
 }
 
 .primary-action:hover,
@@ -469,7 +573,8 @@ h3 {
 
   .stats-grid,
   .controls-row,
-  .form-grid {
+  .form-grid,
+  .detail-grid {
     grid-template-columns: 1fr;
   }
 

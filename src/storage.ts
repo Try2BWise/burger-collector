@@ -1,6 +1,7 @@
 import { createStore, get, set } from "idb-keyval";
 
 export const STORAGE_KEY = "burger-collector.entries.v1";
+export const PREFERENCES_KEY = "burger-collector.preferences.v1";
 const burgerStore = createStore("burger-collector-db", "journal");
 
 export type StoredBurgerEntry = {
@@ -18,6 +19,12 @@ export type StoredBurgerEntry = {
   photoDataUrl?: string;
   createdAt: string;
   updatedAt?: string;
+};
+
+export type StoredPreferences = {
+  hasDismissedWelcome: boolean;
+  defaultSort: "recent" | "rating";
+  prefersCompactCards: boolean;
 };
 
 export async function loadStoredEntries(fallbackEntries: StoredBurgerEntry[]) {
@@ -46,4 +53,15 @@ export async function loadStoredEntries(fallbackEntries: StoredBurgerEntry[]) {
 
 export async function saveStoredEntries(entries: StoredBurgerEntry[]) {
   await set(STORAGE_KEY, entries, burgerStore);
+}
+
+export async function loadStoredPreferences(
+  fallbackPreferences: StoredPreferences
+) {
+  const preferences = await get<StoredPreferences>(PREFERENCES_KEY, burgerStore);
+  return preferences ?? fallbackPreferences;
+}
+
+export async function saveStoredPreferences(preferences: StoredPreferences) {
+  await set(PREFERENCES_KEY, preferences, burgerStore);
 }

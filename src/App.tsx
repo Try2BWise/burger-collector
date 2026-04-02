@@ -5,13 +5,20 @@ import {
   useEffect,
   useState
 } from "react";
-import { loadStoredEntries, saveStoredEntries, type StoredBurgerEntry } from "./storage";
+import {
+  loadStoredEntries,
+  loadStoredPreferences,
+  saveStoredEntries,
+  saveStoredPreferences,
+  type StoredBurgerEntry,
+  type StoredPreferences
+} from "./storage";
 
 type Temperature = "Rare" | "Medium rare" | "Medium" | "Medium well" | "Well done";
 type PattyStyle = "Smashed" | "Griddled" | "Char-broiled" | "Thick-cut" | "Veggie";
 type Juiciness = "Dry" | "Balanced" | "Juicy" | "Rich";
 type SortMode = "recent" | "rating";
-type ViewMode = "journal" | "new" | "stats";
+type ViewMode = "journal" | "new" | "stats" | "detail" | "settings";
 
 type BurgerEntry = {
   id: string;
@@ -44,6 +51,8 @@ type BurgerFormState = {
   photoDataUrl?: string;
 };
 
+type Preferences = StoredPreferences;
+
 type InstallPromptEvent = Event & {
   prompt: () => Promise<void>;
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
@@ -65,6 +74,12 @@ const pattyOptions: PattyStyle[] = [
   "Thick-cut",
   "Veggie"
 ];
+
+const defaultPreferences: Preferences = {
+  hasDismissedWelcome: false,
+  defaultSort: "recent",
+  prefersCompactCards: false
+};
 
 const starterEntries: BurgerEntry[] = [
   {
@@ -243,33 +258,43 @@ function downloadEntries(entries: BurgerEntry[]) {
 
 export default function App() {
   const [entries, setEntries] = useState<BurgerEntry[]>([]);
+  const [preferences, setPreferences] = useState<Preferences>(defaultPreferences);
   const [view, setView] = useState<ViewMode>("journal");
   const [form, setForm] = useState<BurgerFormState>(emptyForm);
   const [search, setSearch] = useState("");
-  const [sortMode, setSortMode] = useState<SortMode>("recent");
+  const [sortMode, setSortMode] = useState<SortMode>(defaultPreferences.defaultSort);
   const [isSavingPhoto, setIsSavingPhoto] = useState(false);
   const [isHydrating, setIsHydrating] = useState(true);
   const [storageError, setStorageError] = useState<string | null>(null);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedEntryId, setSelectedEntryId] = useState<string | null>(null);
   const [importMessage, setImportMessage] = useState<string | null>(null);
   const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
 
   const deferredSearch = useDeferredValue(search);
+  const selectedEntry = entries.find((entry) => entry.id === selectedEntryId) ?? null;
 
   useEffect(() => {
     let cancelled = false;
 
     async function hydrateEntries() {
       try {
-        const storedEntries = await loadStoredEntries(starterEntries);
+        const [storedEntries, storedPreferences] = await Promise.all([
+          loadStoredEntries(starterEntries),
+          loadStoredPreferences(defaultPreferences)
+        ]);
         if (!cancelled) {
           setEntries(storedEntries.map(normalizeEntry));
+          setPreferences(storedPreferences);
+          setSortMode(storedPreferences.defaultSort);
           setStorageError(null);
         }
       } catch {
         if (!cancelled) {
           setEntries(starterEntries);
+          setPreferences(defaultPreferences);
+          setSortMode(defaultPreferences.defaultSort);
           setStorageError("IndexedDB was unavailable, so starter data was loaded.");
         }
       } finally {
@@ -295,6 +320,16 @@ export default function App() {
       setStorageError("Changes could not be saved to IndexedDB.");
     });
   }, [entries, isHydrating]);
+
+  useEffect(() => {
+    if (isHydrating) {
+      return;
+    }
+
+    void saveStoredPreferences(preferences).catch(() => {
+      setStorageError("Preferences could not be saved.");
+    });
+  }, [preferences, isHydrating]);
 
   useEffect(() => {
     const handler = (event: Event) => {
@@ -386,8 +421,13 @@ export default function App() {
     setForm((current) => ({ ...current, [key]: value }));
   };
 
+  const updatePreferences = (updates: Partial<Preferences>) => {
+    setPreferences((current) => ({ ...current, ...updates }));
+  };
+
   const startNewEntry = () => {
     setEditingId(null);
+    setSelectedEntryId(null);
     setForm({ ...emptyForm, sampledOn: TODAY });
     setView("new");
   };
@@ -424,10 +464,12 @@ export default function App() {
         )
       );
       setSaveMessage(`Updated ${form.name.trim()}`);
+      setSelectedEntryId(editingId);
     } else {
       const entry = createEntry(form);
       setEntries((current) => [entry, ...current]);
       setSaveMessage(`Saved ${entry.name}`);
+      setSelectedEntryId(entry.id);
     }
 
     setEditingId(null);
@@ -437,8 +479,14 @@ export default function App() {
 
   const handleEditEntry = (entry: BurgerEntry) => {
     setEditingId(entry.id);
+    setSelectedEntryId(entry.id);
     setForm(formFromEntry(entry));
     setView("new");
+  };
+
+  const openEntryDetail = (entry: BurgerEntry) => {
+    setSelectedEntryId(entry.id);
+    setView("detail");
   };
 
   const handleDeleteEntry = (id: string) => {
@@ -453,6 +501,8 @@ export default function App() {
     }
 
     setEntries((current) => current.filter((item) => item.id !== id));
+    setSelectedEntryId((current) => (current === id ? null : current));
+    setView("journal");
     setSaveMessage(`Deleted ${entry.name}`);
   };
 
@@ -470,8 +520,10 @@ export default function App() {
       const normalized = incoming.map(normalizeEntry);
 
       setEntries(normalized);
+      setSelectedEntryId(normalized[0]?.id ?? null);
       setImportMessage(`Imported ${normalized.length} entries`);
       setStorageError(null);
+      setView("journal");
     } catch {
       setImportMessage("Import failed. Please choose a Burger Collector export.");
     } finally {
@@ -491,11 +543,15 @@ export default function App() {
 
   const resetStarterData = () => {
     setEntries(starterEntries);
+    setSelectedEntryId(starterEntries[0]?.id ?? null);
     setSaveMessage("Restored starter entries");
+    setView("journal");
   };
 
   return (
-    <div className="app-shell">
+    <div
+      className={`app-shell ${preferences.prefersCompactCards ? "compact-mode" : ""}`}
+    >
       <div className="device-frame">
         <header className="hero-card">
           <div className="hero-copy">
@@ -544,6 +600,31 @@ export default function App() {
               <button className="ghost-action" type="button" onClick={handleInstall}>
                 Install app
               </button>
+            </section>
+          ) : null}
+
+          {!preferences.hasDismissedWelcome ? (
+            <section className="panel-card welcome-card">
+              <div>
+                <p className="section-kicker">First run</p>
+                <h2>Use it like a tiny tasting notebook</h2>
+                <p className="install-copy">
+                  Log a burger, open its detail view, and export your journal any
+                  time you want a portable backup.
+                </p>
+              </div>
+              <div className="welcome-actions">
+                <button className="ghost-action" type="button" onClick={startNewEntry}>
+                  Log first burger
+                </button>
+                <button
+                  className="ghost-action"
+                  type="button"
+                  onClick={() => updatePreferences({ hasDismissedWelcome: true })}
+                >
+                  Dismiss tip
+                </button>
+              </div>
             </section>
           ) : null}
 
@@ -632,48 +713,64 @@ export default function App() {
                 ) : (
                   <div className="entry-list">
                     {filteredEntries.map((burger) => (
-                      <article className="entry-card" key={burger.id}>
-                        {burger.photoDataUrl ? (
-                          <img
-                            className="entry-photo"
-                            src={burger.photoDataUrl}
-                            alt={`${burger.name} at ${burger.restaurant}`}
-                          />
-                        ) : null}
+                      <article
+                        className={`entry-card ${selectedEntryId === burger.id ? "selected" : ""}`}
+                        key={burger.id}
+                      >
+                        <button
+                          className="entry-open"
+                          type="button"
+                          onClick={() => openEntryDetail(burger)}
+                        >
+                          {burger.photoDataUrl ? (
+                            <img
+                              className="entry-photo"
+                              src={burger.photoDataUrl}
+                              alt={`${burger.name} at ${burger.restaurant}`}
+                            />
+                          ) : null}
 
-                        <div className="entry-topline">
-                          <div>
-                            <h3>{burger.name}</h3>
-                            <p className="restaurant">{burger.restaurant}</p>
+                          <div className="entry-topline">
+                            <div>
+                              <h3>{burger.name}</h3>
+                              <p className="restaurant">{burger.restaurant}</p>
+                            </div>
+                            <p className="entry-date">
+                              {formatEntryDate(burger.sampledOn)}
+                            </p>
                           </div>
-                          <p className="entry-date">
-                            {formatEntryDate(burger.sampledOn)}
+
+                          <div className="entry-meta">
+                            <span>{renderStars(burger.rating)}</span>
+                            <span>{burger.temperature}</span>
+                            <span>{burger.juiciness}</span>
+                            <span>{burger.pattyStyle}</span>
+                            {burger.price ? <span>{burger.price}</span> : null}
+                          </div>
+
+                          <p className="entry-notes">
+                            {burger.notes || "No tasting notes yet."}
                           </p>
-                        </div>
 
-                        <div className="entry-meta">
-                          <span>{renderStars(burger.rating)}</span>
-                          <span>{burger.temperature}</span>
-                          <span>{burger.juiciness}</span>
-                          <span>{burger.pattyStyle}</span>
-                          {burger.price ? <span>{burger.price}</span> : null}
-                        </div>
-
-                        <p className="entry-notes">
-                          {burger.notes || "No tasting notes yet."}
-                        </p>
-
-                        {burger.toppings.length > 0 ? (
-                          <div className="tag-row" aria-label="Burger details">
-                            {burger.toppings.map((tag) => (
-                              <span className="tag" key={tag}>
-                                {tag}
-                              </span>
-                            ))}
-                          </div>
-                        ) : null}
+                          {burger.toppings.length > 0 ? (
+                            <div className="tag-row" aria-label="Burger details">
+                              {burger.toppings.map((tag) => (
+                                <span className="tag" key={tag}>
+                                  {tag}
+                                </span>
+                              ))}
+                            </div>
+                          ) : null}
+                        </button>
 
                         <div className="entry-actions">
+                          <button
+                            className="ghost-action"
+                            type="button"
+                            onClick={() => openEntryDetail(burger)}
+                          >
+                            Details
+                          </button>
                           <button
                             className="ghost-action"
                             type="button"
@@ -875,6 +972,119 @@ export default function App() {
             </section>
           ) : null}
 
+          {view === "detail" ? (
+            <section className="panel-card detail-card">
+              {selectedEntry ? (
+                <>
+                  <div className="section-heading">
+                    <div>
+                      <p className="section-kicker">Burger detail</p>
+                      <h2>{selectedEntry.name}</h2>
+                      <p className="install-copy">{selectedEntry.restaurant}</p>
+                    </div>
+                    <button
+                      className="ghost-action"
+                      type="button"
+                      onClick={() => setView("journal")}
+                    >
+                      Back
+                    </button>
+                  </div>
+
+                  {selectedEntry.photoDataUrl ? (
+                    <img
+                      className="detail-photo"
+                      src={selectedEntry.photoDataUrl}
+                      alt={`${selectedEntry.name} at ${selectedEntry.restaurant}`}
+                    />
+                  ) : (
+                    <div className="detail-photo detail-photo-placeholder">
+                      No photo yet
+                    </div>
+                  )}
+
+                  <div className="detail-grid">
+                    <article className="detail-stat">
+                      <span>Sampled</span>
+                      <strong>{formatEntryDate(selectedEntry.sampledOn)}</strong>
+                    </article>
+                    <article className="detail-stat">
+                      <span>Rating</span>
+                      <strong>{selectedEntry.rating}/5</strong>
+                    </article>
+                    <article className="detail-stat">
+                      <span>Temperature</span>
+                      <strong>{selectedEntry.temperature}</strong>
+                    </article>
+                    <article className="detail-stat">
+                      <span>Juiciness</span>
+                      <strong>{selectedEntry.juiciness}</strong>
+                    </article>
+                    <article className="detail-stat">
+                      <span>Patty</span>
+                      <strong>{selectedEntry.pattyStyle}</strong>
+                    </article>
+                    <article className="detail-stat">
+                      <span>Price</span>
+                      <strong>{selectedEntry.price || "Not logged"}</strong>
+                    </article>
+                  </div>
+
+                  <article className="detail-section">
+                    <p className="section-kicker">Notes</p>
+                    <p className="detail-notes">
+                      {selectedEntry.notes || "No tasting notes yet."}
+                    </p>
+                  </article>
+
+                  <article className="detail-section">
+                    <p className="section-kicker">Toppings and condiments</p>
+                    <div className="tag-row">
+                      {selectedEntry.toppings.length > 0 ? (
+                        selectedEntry.toppings.map((tag) => (
+                          <span className="tag" key={tag}>
+                            {tag}
+                          </span>
+                        ))
+                      ) : (
+                        <span className="tag">No toppings logged</span>
+                      )}
+                    </div>
+                  </article>
+
+                  <div className="form-actions">
+                    <button
+                      className="primary-action"
+                      type="button"
+                      onClick={() => handleEditEntry(selectedEntry)}
+                    >
+                      Edit this burger
+                    </button>
+                    <button
+                      className="secondary-action"
+                      type="button"
+                      onClick={() => handleDeleteEntry(selectedEntry.id)}
+                    >
+                      Delete entry
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <article className="empty-card">
+                  <p className="section-kicker">No selection</p>
+                  <h2>Pick a burger from the journal first</h2>
+                  <button
+                    className="primary-action"
+                    type="button"
+                    onClick={() => setView("journal")}
+                  >
+                    Back to journal
+                  </button>
+                </article>
+              )}
+            </section>
+          ) : null}
+
           {view === "stats" ? (
             <section className="stats-stack">
               <article className="panel-card insight-card">
@@ -936,11 +1146,79 @@ export default function App() {
               </article>
             </section>
           ) : null}
+
+          {view === "settings" ? (
+            <section className="settings-stack">
+              <article className="panel-card settings-card">
+                <p className="section-kicker">Appearance</p>
+                <h2>Collector preferences</h2>
+
+                <label className="toggle-row">
+                  <div>
+                    <strong>Compact cards</strong>
+                    <p className="install-copy">Tighten entry spacing for a denser journal.</p>
+                  </div>
+                  <input
+                    checked={preferences.prefersCompactCards}
+                    type="checkbox"
+                    onChange={(event) =>
+                      updatePreferences({ prefersCompactCards: event.target.checked })
+                    }
+                  />
+                </label>
+
+                <label className="select-field settings-select">
+                  <span>Default sort order</span>
+                  <select
+                    value={preferences.defaultSort}
+                    onChange={(event) => {
+                      const nextSort = event.target.value as SortMode;
+                      updatePreferences({ defaultSort: nextSort });
+                      setSortMode(nextSort);
+                    }}
+                  >
+                    <option value="recent">Most recent</option>
+                    <option value="rating">Highest rated</option>
+                  </select>
+                </label>
+              </article>
+
+              <article className="panel-card settings-card">
+                <p className="section-kicker">Data</p>
+                <h2>Import, export, and reset</h2>
+                <div className="settings-actions">
+                  <button
+                    className="ghost-action"
+                    type="button"
+                    onClick={() => downloadEntries(entries)}
+                  >
+                    Export journal JSON
+                  </button>
+                  <label className="inline-upload">
+                    <span>Import journal JSON</span>
+                    <input type="file" accept="application/json" onChange={handleImport} />
+                  </label>
+                  <button className="ghost-action" type="button" onClick={resetStarterData}>
+                    Restore starter data
+                  </button>
+                </div>
+              </article>
+
+              <article className="panel-card settings-card">
+                <p className="section-kicker">About</p>
+                <h2>Prototype notes</h2>
+                <p className="install-copy">
+                  This build is local-first, installable, and ready for the
+                  Capacitor iOS handoff to Xcode on a Mac.
+                </p>
+              </article>
+            </section>
+          ) : null}
         </main>
 
         <nav className="tab-bar" aria-label="Primary">
           <button
-            className={`tab ${view === "journal" ? "active" : ""}`}
+            className={`tab ${view === "journal" || view === "detail" ? "active" : ""}`}
             type="button"
             onClick={() => setView("journal")}
           >
@@ -959,6 +1237,13 @@ export default function App() {
             onClick={() => setView("stats")}
           >
             Stats
+          </button>
+          <button
+            className={`tab ${view === "settings" ? "active" : ""}`}
+            type="button"
+            onClick={() => setView("settings")}
+          >
+            Settings
           </button>
         </nav>
       </div>
