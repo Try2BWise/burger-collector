@@ -658,13 +658,6 @@ export default function App() {
             <p className="eyebrow">Burger log</p>
             <h1 className="app-title">Burger Collector</h1>
           </div>
-          <button
-            className="chrome-button"
-            type="button"
-            onClick={() => setView("settings")}
-          >
-            Settings
-          </button>
         </header>
 
         <main className="content">
