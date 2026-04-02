@@ -4,21 +4,21 @@
   line-height: 1.5;
   font-weight: 400;
   background:
-    linear-gradient(180deg, rgba(7, 35, 53, 0.92), rgba(19, 56, 77, 0.96)),
-    linear-gradient(180deg, #0f3043 0%, #12394e 100%);
-  color: #f2f2eb;
+    radial-gradient(circle at top, rgba(196, 223, 230, 0.55), transparent 32%),
+    linear-gradient(180deg, #f7f1e5 0%, #efe5d3 100%);
+  color: #1f2224;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --card-bg: rgba(12, 47, 68, 0.78);
-  --card-border: rgba(163, 218, 240, 0.14);
-  --accent: #f3bb52;
-  --accent-strong: #ffd780;
-  --danger: #ff8d76;
-  --text-primary: #f2f2eb;
-  --text-secondary: #a9cad7;
-  --shadow: 0 16px 40px rgba(2, 10, 18, 0.28);
+  --card-bg: rgba(255, 252, 246, 0.8);
+  --card-border: rgba(57, 86, 97, 0.12);
+  --accent: #2f6678;
+  --accent-strong: #214c5a;
+  --danger: #a64c35;
+  --text-primary: #1f2224;
+  --text-secondary: #5a6770;
+  --shadow: 0 16px 40px rgba(66, 52, 31, 0.12);
 }
 
 * {
@@ -77,7 +77,7 @@ img {
   padding: 24px;
   border-radius: 30px;
   background:
-    linear-gradient(180deg, rgba(15, 67, 97, 0.9), rgba(10, 47, 69, 0.82)),
+    linear-gradient(180deg, rgba(252, 248, 240, 0.92), rgba(236, 228, 211, 0.86)),
     var(--card-bg);
 }
 
@@ -159,20 +159,20 @@ h3 {
 }
 
 .primary-action {
-  background: linear-gradient(180deg, #f3bb52, #d99d31);
-  color: #17384c;
-  box-shadow: 0 12px 24px rgba(217, 157, 49, 0.22);
+  background: linear-gradient(180deg, #3f7788, #2a5f70);
+  color: #f8faf9;
+  box-shadow: 0 12px 24px rgba(42, 95, 112, 0.2);
 }
 
 .secondary-action {
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(47, 102, 120, 0.08);
   color: var(--accent);
 }
 
 .ghost-action {
   padding: 10px 14px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(47, 102, 120, 0.08);
   color: var(--accent);
   font-weight: 700;
 }
@@ -285,9 +285,9 @@ h3 {
 .inline-upload input {
   width: 100%;
   padding: 14px 15px;
-  border: 1px solid rgba(163, 218, 240, 0.12);
+  border: 1px solid rgba(57, 86, 97, 0.12);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.72);
   color: var(--text-primary);
   outline: none;
 }
@@ -303,8 +303,8 @@ h3 {
 .input-group select:focus,
 .input-group textarea:focus,
 .inline-upload input:focus {
-  border-color: rgba(243, 187, 82, 0.4);
-  box-shadow: 0 0 0 4px rgba(243, 187, 82, 0.12);
+  border-color: rgba(47, 102, 120, 0.38);
+  box-shadow: 0 0 0 4px rgba(47, 102, 120, 0.12);
 }
 
 .inline-upload {
@@ -377,7 +377,7 @@ h3 {
 .field-pill {
   padding: 8px 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.08);
+  background: rgba(47, 102, 120, 0.08);
 }
 
 .entry-notes {
@@ -425,9 +425,9 @@ h3 {
 
 .upload-card {
   padding: 16px;
-  border: 1px dashed rgba(163, 218, 240, 0.26);
+  border: 1px dashed rgba(57, 86, 97, 0.22);
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.42);
 }
 
 .upload-card input[type="file"] {
@@ -460,8 +460,8 @@ h3 {
 .detail-photo-placeholder,
 .detail-stat,
 .toggle-row {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(163, 218, 240, 0.12);
+  background: rgba(47, 102, 120, 0.05);
+  border: 1px solid rgba(57, 86, 97, 0.12);
   border-radius: 20px;
 }
 
@@ -517,35 +517,37 @@ h3 {
 .blueprint-card {
   overflow: hidden;
   background:
-    linear-gradient(180deg, rgba(13, 55, 79, 0.95), rgba(7, 39, 58, 0.88)),
+    linear-gradient(180deg, rgba(247, 251, 252, 0.96), rgba(236, 244, 246, 0.92)),
     var(--card-bg);
 }
 
 .blueprint-layout {
   display: grid;
-  grid-template-columns: 1.1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 16px;
   align-items: start;
 }
 
 .blueprint-canvas {
   position: relative;
-  min-height: 280px;
-  padding: 16px;
+  min-height: 320px;
+  padding: 20px;
   border-radius: 24px;
-  border: 1px solid rgba(163, 218, 240, 0.14);
+  border: 1px solid rgba(57, 86, 97, 0.14);
   background:
-    linear-gradient(rgba(163, 218, 240, 0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(163, 218, 240, 0.08) 1px, transparent 1px);
+    linear-gradient(rgba(47, 102, 120, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(47, 102, 120, 0.08) 1px, transparent 1px);
   background-size: 24px 24px;
 }
 
 .blueprint-burger {
   position: absolute;
-  inset: 26px 26px 26px 26px;
+  inset: 30px 24px 30px 24px;
   display: grid;
   align-content: center;
-  gap: 8px;
+  gap: 10px;
+  max-width: 260px;
+  margin: 0 auto;
 }
 
 .burger-bun-top,
@@ -604,6 +606,7 @@ h3 {
 
 .blueprint-notes {
   display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -612,8 +615,8 @@ h3 {
   gap: 4px;
   padding: 12px 14px;
   border-radius: 18px;
-  border: 1px solid rgba(163, 218, 240, 0.12);
-  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(57, 86, 97, 0.12);
+  background: rgba(47, 102, 120, 0.04);
 }
 
 .blueprint-row span {
@@ -625,6 +628,10 @@ h3 {
 
 .blueprint-notes-row strong {
   line-height: 1.45;
+}
+
+.blueprint-notes-row {
+  grid-column: 1 / -1;
 }
 
 .tab-bar {
@@ -650,7 +657,7 @@ h3 {
 }
 
 .tab.active {
-  background: rgba(163, 63, 22, 0.12);
+  background: rgba(47, 102, 120, 0.12);
   color: var(--accent);
 }
 
@@ -675,7 +682,7 @@ h3 {
 .secondary-action:focus-visible,
 .ghost-action:focus-visible,
 .tab:focus-visible {
-  outline: 3px solid rgba(243, 187, 82, 0.3);
+  outline: 3px solid rgba(47, 102, 120, 0.24);
   outline-offset: 2px;
 }
 
@@ -689,6 +696,10 @@ h3 {
   .form-grid,
   .detail-grid,
   .blueprint-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .blueprint-notes {
     grid-template-columns: 1fr;
   }
 
