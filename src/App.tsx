@@ -256,6 +256,87 @@ function downloadEntries(entries: BurgerEntry[]) {
   URL.revokeObjectURL(url);
 }
 
+function BurgerBlueprint({
+  restaurant,
+  toppings,
+  patty,
+  temperature,
+  juiciness,
+  rating,
+  notes
+}: {
+  restaurant: string;
+  toppings: string;
+  patty: string;
+  temperature: string;
+  juiciness: string;
+  rating: string;
+  notes: string;
+}) {
+  const toppingList = toppings
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean)
+    .slice(0, 4);
+
+  return (
+    <section className="panel-card blueprint-card" aria-label="Burger schematic">
+      <div className="section-heading">
+        <div>
+          <p className="section-kicker">Burger breakdown</p>
+          <h2>Schematic view</h2>
+        </div>
+      </div>
+
+      <div className="blueprint-layout">
+        <div className="blueprint-canvas" aria-hidden="true">
+          <div className="blueprint-burger">
+            <div className="burger-bun-top" />
+            <div className="burger-sauce" />
+            <div className="burger-toppings">
+              {toppingList.length > 0 ? toppingList.join(" • ") : "top layer"}
+            </div>
+            <div className="burger-cheese" />
+            <div className="burger-patty" />
+            <div className="burger-bun-bottom" />
+          </div>
+        </div>
+
+        <div className="blueprint-notes">
+          <div className="blueprint-row">
+            <span>Restaurant</span>
+            <strong>{restaurant || "not logged"}</strong>
+          </div>
+          <div className="blueprint-row">
+            <span>Rating</span>
+            <strong>{rating}</strong>
+          </div>
+          <div className="blueprint-row">
+            <span>Toppings</span>
+            <strong>{toppings || "not logged"}</strong>
+          </div>
+          <div className="blueprint-row">
+            <span>Patty</span>
+            <strong>{patty}</strong>
+          </div>
+          <div className="blueprint-row">
+            <span>Temp</span>
+            <strong>{temperature}</strong>
+          </div>
+          <div className="blueprint-row">
+            <span>Juicy meter</span>
+            <strong>{juiciness}</strong>
+          </div>
+          <div className="blueprint-row blueprint-notes-row">
+            <span>Field note</span>
+            <strong>{notes || "No tasting note recorded yet."}</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 export default function App() {
   const [entries, setEntries] = useState<BurgerEntry[]>([]);
   const [preferences, setPreferences] = useState<Preferences>(defaultPreferences);
@@ -810,6 +891,16 @@ export default function App() {
               </div>
 
               <form className="entry-form" onSubmit={handleSubmit}>
+                <BurgerBlueprint
+                  restaurant={form.restaurant}
+                  toppings={form.toppings}
+                  patty={form.pattyStyle}
+                  temperature={form.temperature}
+                  juiciness={form.juiciness}
+                  rating={`${form.rating}/5`}
+                  notes={form.notes}
+                />
+
                 <div className="form-grid">
                   <label className="input-group">
                     <span>Burger name</span>
@@ -1029,6 +1120,16 @@ export default function App() {
                       <strong>{selectedEntry.price || "Not logged"}</strong>
                     </article>
                   </div>
+
+                  <BurgerBlueprint
+                    restaurant={selectedEntry.restaurant}
+                    toppings={selectedEntry.toppings.join(", ")}
+                    patty={selectedEntry.pattyStyle}
+                    temperature={selectedEntry.temperature}
+                    juiciness={selectedEntry.juiciness}
+                    rating={`${selectedEntry.rating}/5`}
+                    notes={selectedEntry.notes}
+                  />
 
                   <article className="detail-section">
                     <p className="section-kicker">Notes</p>

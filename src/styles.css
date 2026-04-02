@@ -4,21 +4,21 @@
   line-height: 1.5;
   font-weight: 400;
   background:
-    radial-gradient(circle at top, rgba(255, 214, 153, 0.58), transparent 32%),
-    linear-gradient(180deg, #f8f2e8 0%, #eed9bc 100%);
-  color: #24160f;
+    linear-gradient(180deg, rgba(7, 35, 53, 0.92), rgba(19, 56, 77, 0.96)),
+    linear-gradient(180deg, #0f3043 0%, #12394e 100%);
+  color: #f2f2eb;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --card-bg: rgba(255, 249, 240, 0.76);
-  --card-border: rgba(112, 64, 26, 0.12);
-  --accent: #a33f16;
-  --accent-strong: #812e0d;
-  --danger: #a12f22;
-  --text-primary: #24160f;
-  --text-secondary: #6c574a;
-  --shadow: 0 16px 40px rgba(80, 39, 17, 0.12);
+  --card-bg: rgba(12, 47, 68, 0.78);
+  --card-border: rgba(163, 218, 240, 0.14);
+  --accent: #f3bb52;
+  --accent-strong: #ffd780;
+  --danger: #ff8d76;
+  --text-primary: #f2f2eb;
+  --text-secondary: #a9cad7;
+  --shadow: 0 16px 40px rgba(2, 10, 18, 0.28);
 }
 
 * {
@@ -77,7 +77,7 @@ img {
   padding: 24px;
   border-radius: 30px;
   background:
-    linear-gradient(180deg, rgba(255, 249, 241, 0.88), rgba(247, 225, 197, 0.74)),
+    linear-gradient(180deg, rgba(15, 67, 97, 0.9), rgba(10, 47, 69, 0.82)),
     var(--card-bg);
 }
 
@@ -159,20 +159,20 @@ h3 {
 }
 
 .primary-action {
-  background: linear-gradient(180deg, #b84e21, #8c3210);
-  color: #fff9f3;
-  box-shadow: 0 12px 24px rgba(140, 50, 16, 0.26);
+  background: linear-gradient(180deg, #f3bb52, #d99d31);
+  color: #17384c;
+  box-shadow: 0 12px 24px rgba(217, 157, 49, 0.22);
 }
 
 .secondary-action {
-  background: rgba(255, 248, 239, 0.75);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--accent);
 }
 
 .ghost-action {
   padding: 10px 14px;
   border-radius: 999px;
-  background: rgba(255, 248, 239, 0.75);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--accent);
   font-weight: 700;
 }
@@ -285,9 +285,9 @@ h3 {
 .inline-upload input {
   width: 100%;
   padding: 14px 15px;
-  border: 1px solid rgba(112, 64, 26, 0.12);
+  border: 1px solid rgba(163, 218, 240, 0.12);
   border-radius: 18px;
-  background: rgba(255, 255, 255, 0.62);
+  background: rgba(255, 255, 255, 0.08);
   color: var(--text-primary);
   outline: none;
 }
@@ -303,8 +303,8 @@ h3 {
 .input-group select:focus,
 .input-group textarea:focus,
 .inline-upload input:focus {
-  border-color: rgba(163, 63, 22, 0.34);
-  box-shadow: 0 0 0 4px rgba(163, 63, 22, 0.12);
+  border-color: rgba(243, 187, 82, 0.4);
+  box-shadow: 0 0 0 4px rgba(243, 187, 82, 0.12);
 }
 
 .inline-upload {
@@ -377,7 +377,7 @@ h3 {
 .field-pill {
   padding: 8px 10px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.58);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .entry-notes {
@@ -425,9 +425,9 @@ h3 {
 
 .upload-card {
   padding: 16px;
-  border: 1px dashed rgba(112, 64, 26, 0.22);
+  border: 1px dashed rgba(163, 218, 240, 0.26);
   border-radius: 24px;
-  background: rgba(255, 255, 255, 0.42);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .upload-card input[type="file"] {
@@ -460,8 +460,8 @@ h3 {
 .detail-photo-placeholder,
 .detail-stat,
 .toggle-row {
-  background: rgba(255, 255, 255, 0.46);
-  border: 1px solid rgba(112, 64, 26, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(163, 218, 240, 0.12);
   border-radius: 20px;
 }
 
@@ -514,6 +514,119 @@ h3 {
   margin-top: 4px;
 }
 
+.blueprint-card {
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(13, 55, 79, 0.95), rgba(7, 39, 58, 0.88)),
+    var(--card-bg);
+}
+
+.blueprint-layout {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
+.blueprint-canvas {
+  position: relative;
+  min-height: 280px;
+  padding: 16px;
+  border-radius: 24px;
+  border: 1px solid rgba(163, 218, 240, 0.14);
+  background:
+    linear-gradient(rgba(163, 218, 240, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(163, 218, 240, 0.08) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.blueprint-burger {
+  position: absolute;
+  inset: 26px 26px 26px 26px;
+  display: grid;
+  align-content: center;
+  gap: 8px;
+}
+
+.burger-bun-top,
+.burger-bun-bottom,
+.burger-patty,
+.burger-cheese,
+.burger-sauce,
+.burger-toppings {
+  display: grid;
+  place-items: center;
+  font-size: 0.85rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #17384c;
+}
+
+.burger-bun-top {
+  height: 64px;
+  border-radius: 999px 999px 24px 24px;
+  background: #e1b558;
+}
+
+.burger-sauce {
+  height: 10px;
+  border-radius: 999px;
+  background: #f1d992;
+}
+
+.burger-toppings {
+  min-height: 54px;
+  border-radius: 18px;
+  background: #6b9c67;
+  color: #f4fff1;
+  padding: 10px;
+  text-align: center;
+}
+
+.burger-cheese {
+  height: 16px;
+  border-radius: 10px;
+  background: #f7c34a;
+}
+
+.burger-patty {
+  height: 54px;
+  border-radius: 18px;
+  background: #65392a;
+  color: #f6d7c7;
+}
+
+.burger-bun-bottom {
+  height: 34px;
+  border-radius: 18px 18px 999px 999px;
+  background: #d7a853;
+}
+
+.blueprint-notes {
+  display: grid;
+  gap: 10px;
+}
+
+.blueprint-row {
+  display: grid;
+  gap: 4px;
+  padding: 12px 14px;
+  border-radius: 18px;
+  border: 1px solid rgba(163, 218, 240, 0.12);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.blueprint-row span {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.blueprint-notes-row strong {
+  line-height: 1.45;
+}
+
 .tab-bar {
   position: fixed;
   left: 50%;
@@ -562,7 +675,7 @@ h3 {
 .secondary-action:focus-visible,
 .ghost-action:focus-visible,
 .tab:focus-visible {
-  outline: 3px solid rgba(163, 63, 22, 0.28);
+  outline: 3px solid rgba(243, 187, 82, 0.3);
   outline-offset: 2px;
 }
 
@@ -574,7 +687,8 @@ h3 {
   .stats-grid,
   .controls-row,
   .form-grid,
-  .detail-grid {
+  .detail-grid,
+  .blueprint-layout {
     grid-template-columns: 1fr;
   }
 
