@@ -5,6 +5,7 @@ import {
   useEffect,
   useState
 } from "react";
+import { loadStoredEntries, saveStoredEntries, type StoredBurgerEntry } from "./storage";
 
 type Temperature = "Rare" | "Medium rare" | "Medium" | "Medium well" | "Well done";
 type PattyStyle = "Smashed" | "Griddled" | "Char-broiled" | "Thick-cut" | "Veggie";
@@ -48,7 +49,6 @@ type InstallPromptEvent = Event & {
   userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
 };
 
-const STORAGE_KEY = "burger-collector.entries.v1";
 const TODAY = new Date().toISOString().slice(0, 10);
 const temperatureOptions: Temperature[] = [
   "Rare",
@@ -111,32 +111,36 @@ const emptyForm: BurgerFormState = {
   photoDataUrl: undefined
 };
 
-function normalizeEntry(entry: BurgerEntry): BurgerEntry {
+function coerceTemperature(value: string): Temperature {
+  return temperatureOptions.includes(value as Temperature)
+    ? (value as Temperature)
+    : "Medium";
+}
+
+function coerceJuiciness(value: string): Juiciness {
+  return juicinessOptions.includes(value as Juiciness)
+    ? (value as Juiciness)
+    : "Balanced";
+}
+
+function coercePattyStyle(value: string): PattyStyle {
+  return pattyOptions.includes(value as PattyStyle)
+    ? (value as PattyStyle)
+    : "Smashed";
+}
+
+function normalizeEntry(entry: StoredBurgerEntry): BurgerEntry {
   return {
     ...entry,
     price: entry.price ?? "",
     toppings: Array.isArray(entry.toppings) ? entry.toppings : [],
     notes: entry.notes ?? "",
-    temperature: entry.temperature ?? "Medium",
-    juiciness: entry.juiciness ?? "Balanced",
-    pattyStyle: entry.pattyStyle ?? "Smashed",
+    temperature: coerceTemperature(entry.temperature ?? "Medium"),
+    juiciness: coerceJuiciness(entry.juiciness ?? "Balanced"),
+    pattyStyle: coercePattyStyle(entry.pattyStyle ?? "Smashed"),
     sampledOn: entry.sampledOn ?? TODAY,
     createdAt: entry.createdAt ?? new Date().toISOString()
   };
-}
-
-function loadEntries() {
-  const saved = window.localStorage.getItem(STORAGE_KEY);
-  if (!saved) {
-    return starterEntries;
-  }
-
-  try {
-    const parsed = JSON.parse(saved) as BurgerEntry[];
-    return parsed.length > 0 ? parsed.map(normalizeEntry) : starterEntries;
-  } catch {
-    return starterEntries;
-  }
 }
 
 function formatEntryDate(dateString: string) {
@@ -238,12 +242,14 @@ function downloadEntries(entries: BurgerEntry[]) {
 }
 
 export default function App() {
-  const [entries, setEntries] = useState<BurgerEntry[]>(() => loadEntries());
+  const [entries, setEntries] = useState<BurgerEntry[]>([]);
   const [view, setView] = useState<ViewMode>("journal");
   const [form, setForm] = useState<BurgerFormState>(emptyForm);
   const [search, setSearch] = useState("");
   const [sortMode, setSortMode] = useState<SortMode>("recent");
   const [isSavingPhoto, setIsSavingPhoto] = useState(false);
+  const [isHydrating, setIsHydrating] = useState(true);
+  const [storageError, setStorageError] = useState<string | null>(null);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [importMessage, setImportMessage] = useState<string | null>(null);
@@ -252,8 +258,43 @@ export default function App() {
   const deferredSearch = useDeferredValue(search);
 
   useEffect(() => {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
-  }, [entries]);
+    let cancelled = false;
+
+    async function hydrateEntries() {
+      try {
+        const storedEntries = await loadStoredEntries(starterEntries);
+        if (!cancelled) {
+          setEntries(storedEntries.map(normalizeEntry));
+          setStorageError(null);
+        }
+      } catch {
+        if (!cancelled) {
+          setEntries(starterEntries);
+          setStorageError("IndexedDB was unavailable, so starter data was loaded.");
+        }
+      } finally {
+        if (!cancelled) {
+          setIsHydrating(false);
+        }
+      }
+    }
+
+    void hydrateEntries();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isHydrating) {
+      return;
+    }
+
+    void saveStoredEntries(entries).catch(() => {
+      setStorageError("Changes could not be saved to IndexedDB.");
+    });
+  }, [entries, isHydrating]);
 
   useEffect(() => {
     const handler = (event: Event) => {
@@ -266,17 +307,18 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!saveMessage && !importMessage) {
+    if (!saveMessage && !importMessage && !storageError) {
       return;
     }
 
     const timeout = window.setTimeout(() => {
       setSaveMessage(null);
       setImportMessage(null);
+      setStorageError(null);
     }, 2800);
 
     return () => window.clearTimeout(timeout);
-  }, [importMessage, saveMessage]);
+  }, [importMessage, saveMessage, storageError]);
 
   const query = deferredSearch.trim().toLowerCase();
   const filteredEntries = [...entries]
@@ -429,6 +471,7 @@ export default function App() {
 
       setEntries(normalized);
       setImportMessage(`Imported ${normalized.length} entries`);
+      setStorageError(null);
     } catch {
       setImportMessage("Import failed. Please choose a Burger Collector export.");
     } finally {
@@ -506,6 +549,7 @@ export default function App() {
 
           {saveMessage ? <p className="toast-message">{saveMessage}</p> : null}
           {importMessage ? <p className="toast-message">{importMessage}</p> : null}
+          {storageError ? <p className="toast-message">{storageError}</p> : null}
 
           {view === "journal" ? (
             <>
@@ -565,7 +609,16 @@ export default function App() {
                   </div>
                 </div>
 
-                {filteredEntries.length === 0 ? (
+                {isHydrating ? (
+                  <article className="panel-card empty-card">
+                    <p className="section-kicker">Loading journal</p>
+                    <h2>Pulling your saved burgers out of storage</h2>
+                    <p className="install-copy">
+                      IndexedDB keeps entries and photos in a more durable store for
+                      the PWA and future native wrapper.
+                    </p>
+                  </article>
+                ) : filteredEntries.length === 0 ? (
                   <article className="panel-card empty-card">
                     <p className="section-kicker">Nothing matched</p>
                     <h2>Your journal is ready for the next great burger</h2>

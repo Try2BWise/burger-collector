@@ -21,3 +21,25 @@ npm run dev
 ```powershell
 npm run build
 ```
+
+## Storage
+
+Entries and photos are now stored in IndexedDB for better durability than `localStorage`, with automatic migration from older local-only data.
+
+## iOS Packaging Prep
+
+Capacitor has been added and the `ios/` project has already been scaffolded.
+
+```powershell
+npm run cap:sync
+```
+
+On a Mac with Xcode and CocoaPods installed:
+
+```powershell
+npm run build
+npm run cap:sync
+npm run cap:open:ios
+```
+
+Then open `ios/App/App.xcworkspace` in Xcode, configure signing, and archive from there for TestFlight/App Store distribution.
