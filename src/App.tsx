@@ -667,93 +667,22 @@ export default function App() {
           </button>
         </header>
 
-        <header className="hero-card">
-          <div className="hero-copy">
-            <p className="eyebrow">Pocket tasting journal</p>
-            <h2>Track the burgers worth remembering</h2>
-            <p className="hero-text">
-              Log the burgers you actually eat, keep tasting notes, and build a
-              personal best-of list that works offline from your home screen.
-            </p>
-          </div>
-
-          <div className="hero-actions">
-            <button className="primary-action" type="button" onClick={startNewEntry}>
-              Log today&apos;s burger
-            </button>
-            <button
-              className="secondary-action"
-              type="button"
-              onClick={() => setView("journal")}
-            >
-              Browse journal
-            </button>
-          </div>
-        </header>
-
         <main className="content">
-          <section className="stats-grid" aria-label="Collector stats">
-            {stats.map((stat) => (
-              <article className="stat-card" key={stat.label}>
-                <p className="stat-value">{stat.value}</p>
-                <p className="stat-label">{stat.label}</p>
-              </article>
-            ))}
-          </section>
-
-          {installPrompt ? (
-            <section className="panel-card install-card">
-              <div>
-                <p className="section-kicker">Installable</p>
-                <h2>Add it to your home screen</h2>
-                <p className="install-copy">
-                  Install the PWA now, then we can use the same codebase later for
-                  an iPhone packaging pass.
-                </p>
-              </div>
-              <button className="ghost-action" type="button" onClick={handleInstall}>
-                Install app
-              </button>
-            </section>
-          ) : null}
-
-          {!preferences.hasDismissedWelcome ? (
-            <section className="panel-card welcome-card">
-              <div>
-                <p className="section-kicker">First run</p>
-                <h2>Use it like a tiny tasting notebook</h2>
-                <p className="install-copy">
-                  Log a burger, open its detail view, and export your journal any
-                  time you want a portable backup.
-                </p>
-              </div>
-              <div className="welcome-actions">
-                <button className="ghost-action" type="button" onClick={startNewEntry}>
-                  Log first burger
-                </button>
-                <button
-                  className="ghost-action"
-                  type="button"
-                  onClick={() => updatePreferences({ hasDismissedWelcome: true })}
-                >
-                  Dismiss tip
-                </button>
-              </div>
-            </section>
-          ) : null}
-
           {saveMessage ? <p className="toast-message">{saveMessage}</p> : null}
           {importMessage ? <p className="toast-message">{importMessage}</p> : null}
           {storageError ? <p className="toast-message">{storageError}</p> : null}
 
           {view === "journal" ? (
-            <>
+            <section className="page-screen">
               <section className="panel-card controls-card">
                 <div className="section-heading">
                   <div>
-                    <p className="section-kicker">Collector journal</p>
-                    <h2>Your burger log</h2>
+                    <p className="section-kicker">Journal</p>
+                    <h2>Your burgers</h2>
                   </div>
+                  <button className="ghost-action" type="button" onClick={startNewEntry}>
+                    New Entry
+                  </button>
                 </div>
 
                 <div className="controls-row">
@@ -788,26 +717,13 @@ export default function App() {
                   </div>
                 </div>
 
-                <div className="utility-row">
-                  <button
-                    className="ghost-action"
-                    type="button"
-                    onClick={() => downloadEntries(entries)}
-                  >
-                    Export JSON
-                  </button>
-                  <label className="inline-upload">
-                    <span>Import JSON</span>
-                    <input type="file" accept="application/json" onChange={handleImport} />
-                  </label>
-                </div>
               </section>
 
               <section className="journal-section">
                 <div className="section-heading">
                   <div>
                     <p className="section-kicker">Saved entries</p>
-                    <h2>{filteredEntries.length} burgers ready to revisit</h2>
+                    <h2>{filteredEntries.length} in your log</h2>
                   </div>
                 </div>
 
@@ -912,20 +828,18 @@ export default function App() {
                   </div>
                 )}
               </section>
-            </>
+            </section>
           ) : null}
 
           {view === "new" ? (
-            <section className="panel-card form-card">
+            <section className="panel-card form-card page-screen">
               <div className="section-heading">
                 <div>
-                  <p className="section-kicker">
-                    {editingId ? "Edit tasting entry" : "New tasting entry"}
-                  </p>
+                  <p className="section-kicker">{editingId ? "Edit Entry" : "New Entry"}</p>
                   <h2>
                     {editingId
-                      ? "Tune up the details"
-                      : "Capture the burger while it's still fresh"}
+                      ? "Update burger details"
+                      : "Log a burger"}
                   </h2>
                 </div>
               </div>
@@ -1104,7 +1018,7 @@ export default function App() {
           ) : null}
 
           {view === "detail" ? (
-            <section className="panel-card detail-card">
+            <section className="panel-card detail-card page-screen">
               {selectedEntry ? (
                 <>
                   <div className="section-heading">
@@ -1227,7 +1141,16 @@ export default function App() {
           ) : null}
 
           {view === "stats" ? (
-            <section className="stats-stack">
+            <section className="stats-stack page-screen">
+              <section className="stats-grid" aria-label="Collector stats">
+                {stats.map((stat) => (
+                  <article className="stat-card" key={stat.label}>
+                    <p className="stat-value">{stat.value}</p>
+                    <p className="stat-label">{stat.label}</p>
+                  </article>
+                ))}
+              </section>
+
               <article className="panel-card insight-card">
                 <p className="section-kicker">Best burger so far</p>
                 <h2>{topEntry?.name ?? "No entries yet"}</h2>
@@ -1289,7 +1212,57 @@ export default function App() {
           ) : null}
 
           {view === "settings" ? (
-            <section className="settings-stack">
+            <section className="settings-stack page-screen">
+              {!preferences.hasDismissedWelcome ? (
+                <section className="panel-card welcome-card">
+                  <div>
+                    <p className="section-kicker">First run</p>
+                    <h2>Use it like a tiny tasting notebook</h2>
+                    <p className="install-copy">
+                      Log a burger, open its detail view, and export your journal any
+                      time you want a portable backup.
+                    </p>
+                  </div>
+                  <div className="welcome-actions">
+                    <button className="ghost-action" type="button" onClick={startNewEntry}>
+                      Log first burger
+                    </button>
+                    <button
+                      className="ghost-action"
+                      type="button"
+                      onClick={() => updatePreferences({ hasDismissedWelcome: true })}
+                    >
+                      Dismiss tip
+                    </button>
+                  </div>
+                </section>
+              ) : null}
+
+              <article className="panel-card settings-card">
+                <p className="section-kicker">About</p>
+                <h2>Track the burgers worth remembering</h2>
+                <p className="install-copy">
+                  Log the burgers you actually eat, keep tasting notes, and build a
+                  personal best-of list that works offline from your home screen.
+                </p>
+              </article>
+
+              {installPrompt ? (
+                <section className="panel-card install-card">
+                  <div>
+                    <p className="section-kicker">Installable</p>
+                    <h2>Add it to your home screen</h2>
+                    <p className="install-copy">
+                      Install the PWA now, then we can use the same codebase later for
+                      an iPhone packaging pass.
+                    </p>
+                  </div>
+                  <button className="ghost-action" type="button" onClick={handleInstall}>
+                    Install app
+                  </button>
+                </section>
+              ) : null}
+
               <article className="panel-card settings-card">
                 <p className="section-kicker">Appearance</p>
                 <h2>Collector preferences</h2>
