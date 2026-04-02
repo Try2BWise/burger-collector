@@ -337,6 +337,25 @@ function BurgerBlueprint({
   );
 }
 
+function TabLabel({
+  icon,
+  label,
+  active
+}: {
+  icon: string;
+  label: string;
+  active: boolean;
+}) {
+  return (
+    <span className="tab-label-wrap">
+      <span className={`tab-icon ${active ? "active" : ""}`} aria-hidden="true">
+        {icon}
+      </span>
+      <span>{label}</span>
+    </span>
+  );
+}
+
 export default function App() {
   const [entries, setEntries] = useState<BurgerEntry[]>([]);
   const [preferences, setPreferences] = useState<Preferences>(defaultPreferences);
@@ -1344,28 +1363,32 @@ export default function App() {
             type="button"
             onClick={() => setView("journal")}
           >
-            Journal
+            <TabLabel
+              icon="≣"
+              label="Journal"
+              active={view === "journal" || view === "detail"}
+            />
           </button>
           <button
             className={`tab ${view === "new" ? "active" : ""}`}
             type="button"
             onClick={startNewEntry}
           >
-            New Entry
+            <TabLabel icon="＋" label="New" active={view === "new"} />
           </button>
           <button
             className={`tab ${view === "stats" ? "active" : ""}`}
             type="button"
             onClick={() => setView("stats")}
           >
-            Stats
+            <TabLabel icon="◔" label="Stats" active={view === "stats"} />
           </button>
           <button
             className={`tab ${view === "settings" ? "active" : ""}`}
             type="button"
             onClick={() => setView("settings")}
           >
-            Settings
+            <TabLabel icon="⚙" label="Settings" active={view === "settings"} />
           </button>
         </nav>
       </div>
